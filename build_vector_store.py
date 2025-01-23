@@ -17,12 +17,13 @@ nest_asyncio.apply()
 
 
 class VectorStoreBuilder:
-    def __init__(self, model_name='gpt-4o', text_directory='./data/text', chroma_db_path='./data/chroma_db'):
+    def __init__(self, model_name='gpt-4o', text_directory='./data/text', chroma_db_path='./data/chroma_db', testing=False):
         self.setup(model_name) # self.llm, self.embed_model
         self.nodes = None
         self.text_directory = text_directory
         self.chroma_db_path = chroma_db_path
         self.chroma_collection = None
+        self.testing = testing
 
     def setup(self, model_name):
         if os.getenv("OPENAI_API_KEY") is None:
@@ -44,9 +45,14 @@ class VectorStoreBuilder:
 
             dataset = load_dataset("jamescalam/ai-arxiv", split="train")
 
+            count = 0
             for item in tqdm(dataset):
                 with open(f"{text_directory}/{item['title'].replace('/', '_')}.txt", "w") as fp:
                     fp.write(item["content"])
+                if self.testing:
+                    if count > 10:
+                        break
+                    count += 1
         else:
             print("Dataset already downloaded")
 
@@ -61,9 +67,17 @@ class VectorStoreBuilder:
             ],
         )
 
-        # run the pipeline
+        # Load and process documents in batches
         documents = SimpleDirectoryReader(self.text_directory).load_data()
-        return pipeline.run(documents=documents, num_workers=10)
+        batch_size = 40  # Process 50 documents at a time
+        all_nodes = []
+        
+        for i in tqdm(range(0, len(documents), batch_size), desc="Processing document batches"):
+            batch = documents[i:i + batch_size]
+            batch_nodes = pipeline.run(documents=batch, num_workers=10)  # Reduced number of workers
+            all_nodes.extend(batch_nodes)
+            
+        return all_nodes
 
 
     def create_vector_store(self):
@@ -84,11 +98,11 @@ class VectorStoreBuilder:
 
 
 def main():
-    vector_store_builder = VectorStoreBuilder(model_name='gpt-4o')
+    vector_store_builder = VectorStoreBuilder(model_name='gpt-4o', testing=True)
     vector_store_builder.download_dataset()
     index = vector_store_builder.create_vector_store()
 
-    query_engine = index.as_query_engine()
+    query_engine = index.as_query_engine(embed_model=vector_store_builder.embed_model)
     response = query_engine.query("What is the main idea of the paper about red-teaming?")
     print(response)
 
