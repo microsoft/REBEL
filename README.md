@@ -43,6 +43,8 @@ export TONIC_VALIDATE_PROJECT_KEY=<your-project-key>
 python main.py
 ```
 
+Note that this requires your `llama-index` version to be on the following version of llama-index: [https://github.com/bvarjavand/llama_index/tree/main](https://github.com/bvarjavand/llama_index/tree/main)
+
 ## Citation
 
 If you use REBEL in your research, please cite our paper:
