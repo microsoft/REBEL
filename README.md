@@ -35,30 +35,110 @@ Our experiments show that REBEL:
 - Maintains high retrieval precision while optimizing for multiple criteria
 - Outperforms both standard RAG and static multi-criteria reranking methods
 
-## This Repository
+## Setup
 
-This repository contains code for reproducing the experimental results presented in our paper. These experiments can be run via:
+1. Clone the repository:
+```bash
+git clone https://github.com/levinwil/REBEL.git
+cd REBEL
 ```
-export OPENAI_API_KEY=<your-api-key>
-export OPENAI_API_BASE=<your-api-base> (optional)
-export TONIC_VALIDATE_API_KEY=<your-api-key>
-export TONIC_VALIDATE_PROJECT_KEY=<your-project-key>
+
+2. Install dependencies:
+```bash
+pip install -e git+https://github.com/bvarjavand/tonic_validate.git
+git clone https://github.com/bvarjavand/llama_index.git
+cd llama_index/llama-index-core && pip install -e .
+```
+
+3. Create a `.env` file with your API keys:
+```bash
+OPENAI_API_KEY=your-api-key-here
+OPENAI_API_BASE=https://your-api-base-url-here  # Optional: Only if using a proxy
+LITELLM_API_KEY=your-litellm-key-here
+LITELLM_BASE_URL=https://your-litellm-base-url-here  # Optional: Only if using a proxy. same as OPENAI_API_BASE
+COHERE_API_KEY=your-cohere-key-here  # Required for Cohere rerank experiments
+TONIC_VALIDATE_API_KEY=your-tonic-key-here
+TONIC_VALIDATE_PROJECT_KEY=your-project-key-here
+TONIC_VALIDATE_BENCHMARK_KEY=your-benchmark-key-here
+```
+
+## Usage
+
+The main script supports several command-line arguments:
+
+```bash
+# Run with default settings
 python main.py
+
+# Force reprocessing of documents
+python main.py --force
+
+# Run in testing mode (processes fewer documents)
+python main.py --testing
+
+# Upload results to Tonic Validate
+python main.py --upload
+
+# Specify number of runs per experiment
+python main.py --runs 3
 ```
 
-Note that this requires your `llama-index` version to be on the following version of llama-index: [https://github.com/bvarjavand/llama_index/tree/main](https://github.com/bvarjavand/llama_index/tree/main)
+## Experiments
 
-## Citation
+The framework includes several RAG strategies:
 
-If you use REBEL in your research, please cite our paper:
-```bibtex
-@article{levine2024relevance,
-  title={Relevance Isn't All You Need: Leveraging Chain-of-Thought To Generate Query-Dependent Multi-Criteria Reranking Prompts For Retrieval},
-  author={LeVine, Will and Varjavand, Bijan},
-  year={2024}
-}
+1. Vanilla RAG
+2. RAG with Cohere reranking
+3. RAG with LLM reranking
+4. RAG with static reranking
+5. RAG with REBEL method
+6. HyDE (Hypothetical Document Embeddings)
+7. Various combinations of the above
+
+## Project Structure
+
+- `main.py`: Main script for running experiments
+- `process_documents.py`: Handles document processing and vector store creation
+- `experiments.py`: Contains different RAG implementations
+- `data/`: Directory for storing documents and vector store
+- `experiment_results/`: Output directory for experiment results
+
+## Vector Store
+
+The project uses ChromaDB as the vector store. The store is:
+- Created automatically on first run
+- Persisted to disk for reuse
+- Can be forced to rebuild using `--force`
+- Configurable chunk size and overlap
+
+## Logging
+
+Detailed logs are saved to:
+- `experiments_[timestamp].log`: Experiment execution logs
+- `document_processing.log`: Document processing logs
+- `vector_store_test.log`: Vector store test logs
+
+## Results
+
+Results are saved in the `experiment_results` directory:
+- `full_results_[timestamp].csv`: Detailed results for each run
+- `summary_[timestamp].csv`: Summary statistics across runs
+
+## Testing
+
+To verify the vector store:
+```bash
+python test_vector_store.py
 ```
 
-## Contact
+## Contributing
 
-For questions or feedback about REBEL, please contact Will LeVine (levinewill@icloud.com).
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
+
+## License
+
+[Your chosen license]
