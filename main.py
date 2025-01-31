@@ -213,12 +213,12 @@ def main():
                 temperature=0,
                 model="gpt-4",
                 api_key=api_key,
-                base_url=api_base
+                api_base=api_base
             )
             embed_model = OpenAIEmbedding(
                 model="text-embedding-3-large",
                 api_key=api_key,
-                base_url=api_base
+                api_base=api_base
             )
         except Exception as e:
             logger.error(f"Failed to initialize OpenAI clients: {str(e)}")
@@ -241,17 +241,17 @@ def main():
         # Define experiments
         experiments = {
             "Vanilla": query_engine_naive(index, llm, embed_model),
-            "VDB + Cohere rerank": query_engine_rerank(index, llm, embed_model),
+            # "VDB + Cohere rerank": query_engine_rerank(index, llm, embed_model),
             "VDB + LLM Rerank": query_engine_llm_rerank(index, llm, embed_model),
-            "VDB + Static Rerank": query_engine_wholistic_rerank(index, llm, embed_model),
+            # "VDB + Static Rerank": query_engine_wholistic_rerank(index, llm, embed_model),
             "VDB + Corrected Our Method": query_engine_corrected_my_method(index, llm, embed_model),
-            "VDB + HyDE": query_engine_hyde(index, llm, embed_model),
-            "VDB + HyDE + LLM Rerank": query_engine_hyde_llm_rerank(index, llm, embed_model),
-            "VDB + HyDE + Cohere Rerank": query_engine_hyde_rerank(index, llm, embed_model),
-            "VDB + HyDE + Static Rerank": query_engine_hyde_wholistic_rerank(index, llm, embed_model),
-            "VDB + HyDE + Corrected Our Method": query_engine_hyde_corrected_my_method(index, llm, embed_model),
-            "VDB + MMR": query_engine_mmr(index, llm, embed_model),
-            "VDB + MMR + HyDE": query_engine_mmr_hyde(index, llm, embed_model),
+            # "VDB + HyDE": query_engine_hyde(index, llm, embed_model),
+            # "VDB + HyDE + LLM Rerank": query_engine_hyde_llm_rerank(index, llm, embed_model),
+            # "VDB + HyDE + Cohere Rerank": query_engine_hyde_rerank(index, llm, embed_model),
+            # "VDB + HyDE + Static Rerank": query_engine_hyde_wholistic_rerank(index, llm, embed_model),
+            # "VDB + HyDE + Corrected Our Method": query_engine_hyde_corrected_my_method(index, llm, embed_model),
+            # "VDB + MMR": query_engine_mmr(index, llm, embed_model),
+            # "VDB + MMR + HyDE": query_engine_mmr_hyde(index, llm, embed_model),
         }
         
         # Run experiments
