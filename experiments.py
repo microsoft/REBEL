@@ -21,21 +21,8 @@ Given the context information and not prior knowledge, answer the query.
 Query: {query_str}
 Answer: """)
 
-META_PROMPT = PromptTemplate("""
-You are an expert Q&A system that is trusted around the world for your factual accuracy.
-Always answer the query using the provided context information, and not prior knowledge. Ensure your answers are fact-based and accurately reflect the context provided.
-Some rules to follow:
-1. Never directly reference the given context in your answer.
-2. Avoid statements like 'Based on the context, ...' or 'The context information ...' or anything along those lines.
-3. Focus on succinct answers that provide only the facts necessary, do not be verbose.Your answers should be max two sentences, up to 250 characters.
----------------------
-{context_str}
----------------------
-Given the context information and not prior knowledge, answer the query.
-Query: {query_str}
-Answer: """)
 
-META_PROMPT = PromptTemplate("""You are a re-ranking system. Your task is to analyze a user's query and a set of candidate documents, assign scores based on specified properties, and output the final ranking of documents.
+MULTICRITERIA_STATIC_RERANKING_PROMPT = PromptTemplate("""You are a re-ranking system. Your task is to analyze a user's query and a set of candidate documents, assign scores based on specified properties, and output the final ranking of documents.
 
 **Inferred Properties**
 
@@ -211,7 +198,7 @@ def query_engine_llm_rerank(index, llm, embed_model):
 
 def query_engine_wholistic_rerank(index, llm, embed_model):
     llm_rerank = LLMRerank(
-        choice_select_prompt=META_PROMPT,
+        choice_select_prompt=MULTICRITERIA_STATIC_RERANKING_PROMPT,
         llm=llm,
         choice_batch_size=10,
         top_n=3)
