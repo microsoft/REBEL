@@ -52,9 +52,11 @@ def setup_validate():
     
     validate_api = ValidateApi(tonic_validate_api_key)
     benchmark = validate_api.get_benchmark(tonic_validate_benchmark_key)
+    
+    # Configure the scorer to use the same API endpoint as our LLM
     scorer = ValidateScorer(
         metrics=[RetrievalPrecisionMetric(), AnswerSimilarityMetric()],
-        model_id="gpt-4"
+        model_id="gpt-4",
     )
     
     return validate_api, benchmark, scorer, tonic_validate_project_key
@@ -204,14 +206,16 @@ def main():
         
         if not api_key:
             raise ValueError("OPENAI_API_KEY environment variable is not set")
+        if not api_base:
+            raise ValueError("OPENAI_API_BASE environment variable is not set")
             
-        logger.info("Initializing with API base: %s", api_base if api_base else "default OpenAI")
+        logger.info("Initializing with API base: %s", api_base)
         
         # Initialize LLM and embedding model with proper error handling
         try:
             llm = OpenAI(
                 temperature=0,
-                model="gpt-4",
+                model="gpt-4o",
                 api_key=api_key,
                 api_base=api_base
             )
@@ -220,6 +224,7 @@ def main():
                 api_key=api_key,
                 api_base=api_base
             )
+            logger.info("Successfully initialized OpenAI clients with custom API base")
         except Exception as e:
             logger.error(f"Failed to initialize OpenAI clients: {str(e)}")
             raise
@@ -240,11 +245,11 @@ def main():
         
         # Define experiments
         experiments = {
-            "Vanilla": query_engine_naive(index, llm, embed_model),
+            # "Vanilla": query_engine_naive(index, llm, embed_model),
             # "VDB + Cohere rerank": query_engine_rerank(index, llm, embed_model),
-            "VDB + LLM Rerank": query_engine_llm_rerank(index, llm, embed_model),
+            # "VDB + LLM Rerank": query_engine_llm_rerank(index, llm, embed_model),
             # "VDB + Static Rerank": query_engine_wholistic_rerank(index, llm, embed_model),
-            "VDB + Corrected Our Method": query_engine_corrected_my_method(index, llm, embed_model),
+            # "VDB + Corrected Our Method": query_engine_corrected_my_method(index, llm, embed_model),
             # "VDB + HyDE": query_engine_hyde(index, llm, embed_model),
             # "VDB + HyDE + LLM Rerank": query_engine_hyde_llm_rerank(index, llm, embed_model),
             # "VDB + HyDE + Cohere Rerank": query_engine_hyde_rerank(index, llm, embed_model),
@@ -252,6 +257,7 @@ def main():
             # "VDB + HyDE + Corrected Our Method": query_engine_hyde_corrected_my_method(index, llm, embed_model),
             # "VDB + MMR": query_engine_mmr(index, llm, embed_model),
             # "VDB + MMR + HyDE": query_engine_mmr_hyde(index, llm, embed_model),
+            "VDB + Simple Rebel": query_engine_simple_rebel(index, llm, embed_model),
         }
         
         # Run experiments
