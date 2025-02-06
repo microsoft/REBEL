@@ -2,3 +2,8 @@ data/*
 .env
 .DS_Store
 __pycache__/
+**data**
+**experiment_results**
+**inference_times**
+llama_index
+tonic_validate

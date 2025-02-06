@@ -1,4 +1,4 @@
-from process_documents import process_documents
+from process_documents import process_documents, check_vector_store
 from experiments import *
 import pandas as pd
 from tonic_validate import ValidateScorer, ValidateApi
@@ -88,6 +88,15 @@ def run_experiment(experiment_name, query_engine, scorer, benchmark, validate_ap
     """Run a single experiment with multiple runs."""
     logger.info(f"Starting experiment: {experiment_name}")
     results_list = []
+    output_path = 'experiment_results'
+    os.makedirs(output_path, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # Load existing results if any
+    results_file = f'{output_path}/full_results_{timestamp}.csv'
+    if os.path.exists(results_file):
+        existing_results = pd.read_csv(results_file)
+        results_list = existing_results.to_dict('records')
     
     for i in range(runs):
         try:
@@ -114,11 +123,17 @@ def run_experiment(experiment_name, query_engine, scorer, benchmark, validate_ap
                         data.llm_context = [ctx.replace('\x00', '') for ctx in data.llm_context]
             
             # Store results
-            results_list.append({
+            run_result = {
                 'Run': i+1,
                 'Experiment': experiment_name,
                 'OverallScores': run.overall_scores
-            })
+            }
+            results_list.append(run_result)
+            
+            # Save results after each run
+            current_results = pd.DataFrame(results_list)
+            current_results.to_csv(results_file, index=False)
+            summarize_results(current_results, output_path)
             
             # Upload if requested
             if upload_results:
@@ -131,13 +146,18 @@ def run_experiment(experiment_name, query_engine, scorer, benchmark, validate_ap
             
         except Exception as e:
             logger.error(f"Error in {experiment_name} Run {i+1}: {str(e)}")
-            results_list.append({
+            run_result = {
                 'Run': i+1,
                 'Experiment': experiment_name,
                 'OverallScores': {'error': str(e)}
-            })
-    
-    return pd.DataFrame(results_list)
+            }
+            results_list.append(run_result)
+            # Save results even after error
+            current_results = pd.DataFrame(results_list)
+            current_results.to_csv(results_file, index=False)
+            summarize_results(current_results, output_path)
+    return
+
 
 def summarize_results(results_df, output_path='experiment_results'):
     """Summarize and save experiment results."""
@@ -146,9 +166,9 @@ def summarize_results(results_df, output_path='experiment_results'):
     
     # Extract metrics
     results_df['AnswerSimilarity'] = results_df['OverallScores'].apply(
-        lambda x: x.get('answer_similarity', None))
+        lambda x: x.get('answer_similarity', None) if isinstance(x, dict) else None)
     results_df['RetrievalPrecision'] = results_df['OverallScores'].apply(
-        lambda x: x.get('retrieval_precision', None))
+        lambda x: x.get('retrieval_precision', None) if isinstance(x, dict) else None)
     
     # Calculate summary statistics
     summary = results_df.groupby('Experiment').agg({
@@ -156,8 +176,7 @@ def summarize_results(results_df, output_path='experiment_results'):
         'AnswerSimilarity': ['mean', 'std']
     }).round(4)
     
-    # Save results
-    results_df.to_csv(f'{output_path}/full_results_{timestamp}.csv')
+    # Save summary
     summary.to_csv(f'{output_path}/summary_{timestamp}.csv')
     
     # Log summary
@@ -165,35 +184,6 @@ def summarize_results(results_df, output_path='experiment_results'):
     logger.info("\n" + str(summary))
     
     return summary
-
-def check_vector_store(db_path='./data/chroma_db'):
-    """Check if vector store exists and has documents."""
-    if not os.path.exists(db_path):
-        logger.info("No existing vector store found")
-        return False
-        
-    try:
-        # Initialize ChromaDB client
-        client = chromadb.Client(
-            chromadb.config.Settings(
-                is_persistent=True,
-                persist_directory=db_path,
-                anonymized_telemetry=False
-            )
-        )
-        
-        # Get or create collection
-        collection = client.get_or_create_collection(
-            name="ai_arxiv_papers",
-            metadata={"hnsw:space": "cosine"}
-        )
-        
-        count = collection.count()
-        logger.info(f"Found existing vector store with {count} documents")
-        return count > 0
-    except Exception as e:
-        logger.warning(f"Error checking vector store: {str(e)}")
-        return False
 
 def main():
     """Main function to run all experiments."""
@@ -245,32 +235,22 @@ def main():
         
         # Define experiments
         experiments = {
-            # "Vanilla": query_engine_naive(index, llm, embed_model),
-            # "VDB + Cohere rerank": query_engine_rerank(index, llm, embed_model),
-            # "VDB + LLM Rerank": query_engine_llm_rerank(index, llm, embed_model),
-            # "VDB + Static Rerank": query_engine_wholistic_rerank(index, llm, embed_model),
-            # "VDB + Corrected Our Method": query_engine_corrected_my_method(index, llm, embed_model),
-            # "VDB + HyDE": query_engine_hyde(index, llm, embed_model),
-            # "VDB + HyDE + LLM Rerank": query_engine_hyde_llm_rerank(index, llm, embed_model),
-            # "VDB + HyDE + Cohere Rerank": query_engine_hyde_rerank(index, llm, embed_model),
-            # "VDB + HyDE + Static Rerank": query_engine_hyde_wholistic_rerank(index, llm, embed_model),
-            # "VDB + HyDE + Corrected Our Method": query_engine_hyde_corrected_my_method(index, llm, embed_model),
-            # "VDB + MMR": query_engine_mmr(index, llm, embed_model),
-            # "VDB + MMR + HyDE": query_engine_mmr_hyde(index, llm, embed_model),
-            "VDB + Simple Rebel": query_engine_simple_rebel(index, llm, embed_model),
+            "No Rerank": query_engine_no_rerank(index, llm, embed_model),
+            "Cohere Rerank": query_engine_cohere_rerank(index, embed_model),
+            "LLM Rerank": query_engine_llm_rerank(index, llm, embed_model),
+            "One-Turn REBEL Rerank": query_engine_one_turn_rebel_rerank(index, llm, embed_model),
+            "Two-Turn Relevance-Only REBEL Rerank": query_engine_two_turn_relevance_only_rebel_rerank(index, llm, embed_model),
+            "Two-Turn REBEL Rerank": query_engine_two_turn_rebel_rerank(index, llm, embed_model),
+            "HyDE": query_engine_hyde(index, llm, embed_model),
+            "MMR": query_engine_mmr(index, llm, embed_model),
         }
         
         # Run experiments
-        all_results = pd.DataFrame()
         for name, engine in experiments.items():
-            results = run_experiment(
+            run_experiment(
                 name, engine, scorer, benchmark, validate_api, project_key,
                 upload_results=args.upload, runs=args.runs
             )
-            all_results = pd.concat([all_results, results], ignore_index=True)
-        
-        # Summarize results
-        summary = summarize_results(all_results)
         
     except Exception as e:
         logger.error(f"Error in main execution: {str(e)}", exc_info=True)

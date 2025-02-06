@@ -20,6 +20,35 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+def check_vector_store(db_path='./data/chroma_db'):
+    """Check if vector store exists and has documents."""
+    if not os.path.exists(db_path):
+        logger.info("No existing vector store found")
+        return False
+        
+    try:
+        # Initialize ChromaDB client
+        client = chromadb.Client(
+            chromadb.config.Settings(
+                is_persistent=True,
+                persist_directory=db_path,
+                anonymized_telemetry=False
+            )
+        )
+        
+        # Get or create collection
+        collection = client.get_or_create_collection(
+            name="ai_arxiv_papers",
+            metadata={"hnsw:space": "cosine"}
+        )
+        
+        count = collection.count()
+        logger.info(f"Found existing vector store with {count} documents")
+        return count > 0
+    except Exception as e:
+        logger.warning(f"Error checking vector store: {str(e)}")
+        return False
+
 def download_dataset(text_directory='./data/text', testing=False):
     """Download arxiv papers dataset if not already present."""
     if not os.path.exists(text_directory):
