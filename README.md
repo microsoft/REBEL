@@ -83,6 +83,13 @@ python main.py --upload
 python main.py --runs 3
 ```
 
+To get inference time data, run the `test_experiments.py` file. This is also useful for testing these methods with different vector databases.
+
+```bash
+# Run normally
+python test_experiments.py
+```
+
 ## Experiments
 
 The framework includes several RAG strategies:
@@ -93,15 +100,13 @@ The framework includes several RAG strategies:
 4. RAG with static reranking
 5. RAG with REBEL method
 6. HyDE (Hypothetical Document Embeddings)
-7. Various combinations of the above
 
 ## Project Structure
 
 - `main.py`: Main script for running experiments
 - `process_documents.py`: Handles document processing and vector store creation
 - `experiments.py`: Contains different RAG implementations
-- `data/`: Directory for storing documents and vector store
-- `experiment_results/`: Output directory for experiment results
+- `test_experiments.py`: Runs a single run for each experiment and saves inference times
 
 ## Vector Store
 
@@ -110,26 +115,6 @@ The project uses ChromaDB as the vector store. The store is:
 - Persisted to disk for reuse
 - Can be forced to rebuild using `--force`
 - Configurable chunk size and overlap
-
-## Logging
-
-Detailed logs are saved to:
-- `experiments_[timestamp].log`: Experiment execution logs
-- `document_processing.log`: Document processing logs
-- `vector_store_test.log`: Vector store test logs
-
-## Results
-
-Results are saved in the `experiment_results` directory:
-- `full_results_[timestamp].csv`: Detailed results for each run
-- `summary_[timestamp].csv`: Summary statistics across runs
-
-## Testing
-
-To verify the vector store:
-```bash
-python test_vector_store.py
-```
 
 ## Contributing
 
