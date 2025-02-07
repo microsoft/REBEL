@@ -30,10 +30,17 @@ This approach enables REBEL to select context documents that are not just releva
 
 ## Experimental Results
 
-Our experiments show that REBEL:
+Our experiments show that REBEL: 
 - Significantly improves answer quality compared to relevance-only approaches
 - Maintains high retrieval precision while optimizing for multiple criteria
-- Outperforms both standard RAG and static multi-criteria reranking methods
+- Outperforms both standard RAG and static multi-criteria reranking methods.
+
+![Our Metric](output/experiment1/figure_1.png)
+Comparison of retrieval methods showing retrieval precision versus answer similarity, with error bars indicating 95% confidence intervals. The dashed best-fit lines represent the previously posited information bottleneck (blue) and the surpassing of that bottleneck by multi-criteria rerankers(red). The one-turn version uses five fixed criteria (depth, diversity, clarity, authoritativeness, andrecency) to achieve both higher retrieval relevance and answer quality than vanilla RAG (No Rerank). The two-turn version further improves performance by adapting criteria to each query through a two-turn prompting process.
+
+
+![System Quality/Inference Scaling](output/experiment1/figure_2.png)
+Visualization of system quality (measured by the multiplication of answer similarity and retrieval precision) and system inference speed (measured by generated output characters per second) for each method. We note that existing relevance-only methods are not able to achieve higher system quality at efficient inference speed rates, while our multi-criteria methods enable a new RAG tradeoff curve where inference compute can be leveraged to greatly increase system quality.
 
 ## Setup
 
