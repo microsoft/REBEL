@@ -34,7 +34,6 @@ def load_experiment_data(results_dir):
         'two-turn_relevance-only_rebel_rerank': 'Two-Turn Relevance-Only REBEL Rerank',
         'two-turn_rebel_rerank': 'Two-Turn REBEL Rerank',
         'hyde': 'HyDE',
-        'mmr': 'MMR'
     }
     
     # Iterate through experiment directories
@@ -206,12 +205,6 @@ def figure_2(inference_data, output_path, results_dir):
     data = load_experiment_data(results_dir)
     if not data['Experiment']:
         raise ValueError("No experiment data found in results directory")
-
-    # inference_data = {
-    #     'Method': ['Cohere rerank', 'Two-Turn REBEL Rerank', 'LLM Rerank', '1-Turn REBEL Rerank', 'No Rerank', '2-Turn Relevance-Only REBEL Rerank', 'HyDE'],
-    #     'Time': [1.9880, 17.0301, 2.8455, 4.2466, 1.9734, 8.5820, 7.8250],
-    #     'ResponseLength': [135, 213, 213, 250, 226, 206, 213]
-    # }
 
     # Create mapping between different naming conventions
     name_mapping = {
