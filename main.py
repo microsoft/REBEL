@@ -39,6 +39,25 @@ def parse_args():
                        type=int,
                        default=5,
                        help='Number of runs per experiment (default: 5)')
+    parser.add_argument('--experiment',
+                       type=str,
+                       choices=[
+                           "No Rerank",
+                           "Cohere Rerank",
+                           "LLM Rerank",
+                           "One-Turn REBEL Rerank",
+                           "Two-Turn Relevance-Only REBEL Rerank",
+                           "Two-Turn REBEL Rerank",
+                           "HyDE",
+                           "MMR",
+                           "all"
+                       ],
+                       default="all",
+                       help='Which experiment to run (default: all)')
+    parser.add_argument('--output-path',
+                       type=str,
+                       default='experiment_results',
+                       help='Path to save experiment results')
     return parser.parse_args()
 
 def setup_validate():
@@ -84,19 +103,19 @@ def make_get_llama_response(query_engine):
             }
     return get_llama_response
 
-def run_experiment(experiment_name, query_engine, scorer, benchmark, validate_api, project_key, upload_results=False, runs=5):
+def run_experiment(experiment_name, query_engine, scorer, benchmark, validate_api, project_key, output_path, upload_results=False, runs=5):
     """Run a single experiment with multiple runs."""
     logger.info(f"Starting experiment: {experiment_name}")
     results_list = []
-    output_path = 'experiment_results'
-    os.makedirs(output_path, exist_ok=True)
+    
+    # Create experiment-specific output directory
+    experiment_path = os.path.join(output_path, experiment_name.replace(" ", "_").lower())
+    os.makedirs(experiment_path, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
-    # Load existing results if any
-    results_file = f'{output_path}/full_results_{timestamp}.csv'
-    if os.path.exists(results_file):
-        existing_results = pd.read_csv(results_file)
-        results_list = existing_results.to_dict('records')
+    # Define output files
+    results_file = os.path.join(experiment_path, f'results_{timestamp}.csv')
+    summary_file = os.path.join(experiment_path, f'summary_{timestamp}.csv')
     
     for i in range(runs):
         try:
@@ -133,7 +152,7 @@ def run_experiment(experiment_name, query_engine, scorer, benchmark, validate_ap
             # Save results after each run
             current_results = pd.DataFrame(results_list)
             current_results.to_csv(results_file, index=False)
-            summarize_results(current_results, output_path)
+            summarize_results(current_results, summary_file)
             
             # Upload if requested
             if upload_results:
@@ -155,15 +174,12 @@ def run_experiment(experiment_name, query_engine, scorer, benchmark, validate_ap
             # Save results even after error
             current_results = pd.DataFrame(results_list)
             current_results.to_csv(results_file, index=False)
-            summarize_results(current_results, output_path)
-    return
-
-
-def summarize_results(results_df, output_path='experiment_results'):
-    """Summarize and save experiment results."""
-    os.makedirs(output_path, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            summarize_results(current_results, summary_file)
     
+    return pd.DataFrame(results_list)
+
+def summarize_results(results_df, output_file):
+    """Summarize and save experiment results."""
     # Extract metrics
     results_df['AnswerSimilarity'] = results_df['OverallScores'].apply(
         lambda x: x.get('answer_similarity', None) if isinstance(x, dict) else None)
@@ -177,7 +193,7 @@ def summarize_results(results_df, output_path='experiment_results'):
     }).round(4)
     
     # Save summary
-    summary.to_csv(f'{output_path}/summary_{timestamp}.csv')
+    summary.to_csv(output_file)
     
     # Log summary
     logger.info("\nExperiment Summary:")
@@ -245,11 +261,21 @@ def main():
             "MMR": query_engine_mmr(index, llm, embed_model),
         }
         
+        # Create output directory
+        os.makedirs(args.output_path, exist_ok=True)
+        
         # Run experiments
-        for name, engine in experiments.items():
+        if args.experiment == "all":
+            for name, engine in experiments.items():
+                run_experiment(
+                    name, engine, scorer, benchmark, validate_api, project_key,
+                    args.output_path, upload_results=args.upload, runs=args.runs
+                )
+        else:
+            engine = experiments[args.experiment]
             run_experiment(
-                name, engine, scorer, benchmark, validate_api, project_key,
-                upload_results=args.upload, runs=args.runs
+                args.experiment, engine, scorer, benchmark, validate_api, project_key,
+                args.output_path, upload_results=args.upload, runs=args.runs
             )
         
     except Exception as e:
