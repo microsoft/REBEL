@@ -7,3 +7,7 @@ __pycache__/
 **inference_times**
 llama_index
 tonic_validate
+**.log
+*.log
+figures/
+results/
