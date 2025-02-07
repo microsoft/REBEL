@@ -131,6 +131,12 @@ def figure_1(output_path, results_dir):
             ax.annotate(txt, (data['RetrievalPrecision_mean'][i], data['AnswerSimilarity_mean'][i]),
                       xytext=(10, -8), textcoords='offset points')
         else:
+            if txt == 'Two-Turn Relevance-Only REBEL Rerank':
+                txt = 'Two-Turn Relevance-Only\nREBEL Rerank'
+            if txt == 'Two-Turn REBEL Rerank':
+                txt = 'Two-Turn\nREBEL\nRerank'
+            if txt == 'One-Turn REBEL Rerank':
+                txt = 'One-Turn REBEL\nRerank'
             ax.annotate(txt, (data['RetrievalPrecision_mean'][i], data['AnswerSimilarity_mean'][i]),
                       xytext=(10, 10), textcoords='offset points')
 
