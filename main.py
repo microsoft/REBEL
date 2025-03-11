@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 from process_documents import process_documents, check_vector_store
 from experiments import *
 import pandas as pd

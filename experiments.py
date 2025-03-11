@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 from llama_index.core import PromptTemplate
 from llama_index.postprocessor.cohere_rerank import CohereRerank
 from llama_index.core.postprocessor import LLMRerank, REBELRerank
