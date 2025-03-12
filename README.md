@@ -1,4 +1,6 @@
 # REBEL: RErank BEyond reLevance 
+👉[llama-index PR](https://github.com/run-llama/llama_index/pull/17590)
+
 <a target="_blank" href="https://colab.research.google.com/github/levinwil/REBEL/blob/main/REBEL.ipynb">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
 </a>
@@ -46,7 +48,7 @@ Visualization of system quality (measured by the multiplication of answer simila
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/levinwil/REBEL.git
+git clone https://github.com/microsoft/REBEL.git
 cd REBEL
 ```
 
