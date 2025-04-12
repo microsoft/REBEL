@@ -1,6 +1,8 @@
 # REBEL: RErank BEyond reLevance 
 👉[llama-index PR](https://github.com/run-llama/llama_index/pull/17590)
 
+👉[arxiv PDF](https://arxiv.org/pdf/2504.07104)
+
 <a target="_blank" href="https://colab.research.google.com/github/levinwil/REBEL/blob/main/REBEL.ipynb">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
 </a>
