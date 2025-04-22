@@ -3,7 +3,7 @@
 
 👉[arxiv PDF](https://arxiv.org/pdf/2504.07104)
 
-<a target="_blank" href="https://colab.research.google.com/github/levinwil/REBEL/blob/main/REBEL.ipynb">
+<a target="_blank" href="https://colab.research.google.com/github/microsoft/REBEL/blob/main/REBEL.ipynb">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
 </a>
 
